@@ -544,12 +544,12 @@ async function syncRecognizeWithAutoPunctuation(
   languageCode
 ) {
   // [START speech_transcribe_auto_punctuation]
-  // Imports the Google Cloud client library for Beta API
+  // Imports the Google Cloud client library for API
   /**
    * TODO(developer): Update client library import to use new
    * version of API when desired features become available
    */
-  const speech = require('@google-cloud/speech').v1p1beta1;
+  const speech = require('@google-cloud/speech');
   const fs = require('fs');
 
   // Creates a client
