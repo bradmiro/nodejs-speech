@@ -284,4 +284,3 @@ require(`yargs`)
   .epilogue(`For more information, see https://cloud.google.com/speech/docs`)
   .help()
   .strict().argv;
-  
