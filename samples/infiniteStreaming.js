@@ -55,6 +55,7 @@ function infiniteStream(
   // const streamingLimit = 10000; // ms - set to low number for demo purposes
 
 // [START speech_transcribe_infinite_streaming_imports]
+
   const {Transform} = require('stream');
 
   // Node-Record-lpcm16
@@ -62,7 +63,8 @@ function infiniteStream(
 
   // Imports the Google Cloud client library
   // Currently, only v1p1beta1 contains result-end-time
-  const speech = require('@google-cloud/speech').v1;
+  const speech = require('@google-cloud/speech').v1p1beta1;
+
 // [END speech_transcribe_infinite_streaming_imports]
 
 
@@ -78,6 +80,7 @@ function infiniteStream(
   };
 
   // [START speech_transcribe_infinite_streaming_globals]
+
   let recognizeStream = null;
   let restartCounter = 0;
   let audioInput = [];
@@ -88,9 +91,11 @@ function infiniteStream(
   let newStream = true;
   let bridgingOffset = 0;
   let lastTranscriptWasFinal = false;
+
   // [END speech_transcribe_infinite_streaming_globals]
 
   // [START speech_transcribe_infinite_streaming_main]
+
   const client = new speech.SpeechClient();
 
   function startStream() {
@@ -111,9 +116,11 @@ function infiniteStream(
     // Restart stream when streamingLimit expires
     setTimeout(restartStream, streamingLimit);
   }
+
   // [END speech_transcribe_infinite_streaming_main]
 
   // [START speech_transcribe_infinite_streaming_output]
+  
   const speechCallback = stream => {
     // Convert API result end time from seconds + nanoseconds to milliseconds
     resultEndTime =
@@ -148,9 +155,11 @@ function infiniteStream(
       lastTranscriptWasFinal = false;
     }
   };
+
   // [END speech_transcribe_infinite_streaming_output]]
 
   // [START speech_transcribe_infinite_streaming_generator]
+
   const audioInputStreamTransform = new Transform({
     transform: (chunk, encoding, callback) => {
       if (newStream && lastAudioInput.length !== 0) {
@@ -186,6 +195,7 @@ function infiniteStream(
       callback();
     },
   });
+
 // [END speech_transcribe_infinite_streaming_generator]
 
   function restartStream() {
