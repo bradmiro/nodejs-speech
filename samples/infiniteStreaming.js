@@ -24,6 +24,10 @@
  * Incoming audio should not be dropped / lost during reset, and context from
  * previous sessions should be maintained as long the utterance returns an
  * isFinal response before 2 * streamingLimit has expired.
+ * The output text is color-coded:
+ *    red - unfinalized transcript
+ *    green - finalized transcript
+ *    yellow/orange - API request restarted
  */
 
 'use strict';
@@ -48,14 +52,14 @@ function infiniteStream(
   languageCode,
   streamingLimit
 ) {
+  // [START speech_transcribe_infinite_streaming]
 
   // const encoding = 'LINEAR16';
   // const sampleRateHertz = 16000;
   // const languageCode = 'en-US';
   // const streamingLimit = 10000; // ms - set to low number for demo purposes
 
-// [START speech_transcribe_infinite_streaming_imports]
-
+  const chalk = require('chalk');
   const {Transform} = require('stream');
 
   // Node-Record-lpcm16
@@ -65,8 +69,7 @@ function infiniteStream(
   // Currently, only v1p1beta1 contains result-end-time
   const speech = require('@google-cloud/speech').v1p1beta1;
 
-// [END speech_transcribe_infinite_streaming_imports]
-
+  const client = new speech.SpeechClient();
 
   const config = {
     encoding: encoding,
@@ -79,8 +82,6 @@ function infiniteStream(
     interimResults: true,
   };
 
-  // [START speech_transcribe_infinite_streaming_globals]
-
   let recognizeStream = null;
   let restartCounter = 0;
   let audioInput = [];
@@ -91,12 +92,6 @@ function infiniteStream(
   let newStream = true;
   let bridgingOffset = 0;
   let lastTranscriptWasFinal = false;
-
-  // [END speech_transcribe_infinite_streaming_globals]
-
-  // [START speech_transcribe_infinite_streaming_main]
-
-  const client = new speech.SpeechClient();
 
   function startStream() {
     // Clear current audioInput
@@ -117,10 +112,6 @@ function infiniteStream(
     setTimeout(restartStream, streamingLimit);
   }
 
-  // [END speech_transcribe_infinite_streaming_main]
-
-  // [START speech_transcribe_infinite_streaming_output]
-  
   const speechCallback = stream => {
     // Convert API result end time from seconds + nanoseconds to milliseconds
     resultEndTime =
@@ -140,7 +131,7 @@ function infiniteStream(
     }
 
     if (stream.results[0].isFinal) {
-      process.stdout.write(`${stdoutText}\n`);
+      process.stdout.write(chalk.green(`${stdoutText}\n`));
 
       isFinalEndTime = resultEndTime;
       lastTranscriptWasFinal = true;
@@ -150,15 +141,11 @@ function infiniteStream(
         stdoutText =
           stdoutText.substring(0, process.stdout.columns - 4) + '...';
       }
-      process.stdout.write(`${stdoutText}`);
+      process.stdout.write(chalk.red(`${stdoutText}`));
 
       lastTranscriptWasFinal = false;
     }
   };
-
-  // [END speech_transcribe_infinite_streaming_output]]
-
-  // [START speech_transcribe_infinite_streaming_generator]
 
   const audioInputStreamTransform = new Transform({
     transform: (chunk, encoding, callback) => {
@@ -196,8 +183,6 @@ function infiniteStream(
     },
   });
 
-// [END speech_transcribe_infinite_streaming_generator]
-
   function restartStream() {
     if (recognizeStream) {
       recognizeStream.removeListener('data', speechCallback);
@@ -217,7 +202,7 @@ function infiniteStream(
       process.stdout.write(`\n`);
     }
     process.stdout.write(
-      `${streamingLimit * restartCounter}: RESTARTING REQUEST\n`
+      chalk.yellow(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
     );
 
     newStream = true;
